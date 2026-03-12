@@ -7,9 +7,32 @@ This repository implements a full deep compression workflow for an MLP classifie
 - Images are used only to derive fixed-size feature vectors.
 - Compression is applied only to MLP linear layers.
 
+## Environment setup (VS Code / Jupyter)
+Install dependencies **in the same interpreter/kernel you will run**:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+In a notebook cell:
+
+```python
+%pip install -r requirements.txt
+```
+
+After installation, restart the kernel/interpreter.
+
 ## Run
 ```bash
 python main.py
+```
+
+Or in notebook:
+
+```python
+from main import run_pipeline
+metrics = run_pipeline()
+metrics
 ```
 
 ## Pipeline

@@ -1,5 +1,5 @@
-torch
 numpy
 scikit-learn
 transformers
-matplotlib
+matplotlibnumpy>=1.24
+torch>=2.0

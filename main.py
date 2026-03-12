@@ -1,31 +1,57 @@
 from __future__ import annotations
 
 import random
+from importlib.util import find_spec
 
-import numpy as np
-import torch
-
-from compression import (
-    apply_magnitude_pruning,
-    global_sparsity,
-    quantize_model_weights,
-    replace_linear_layers,
-)
 from config import DEFAULT_CONFIG
-from data import build_feature_dataloaders
-from models import FeatureMLP
-from utils import evaluate, filesize_bytes, huffman_encode_file, save_compressed_npz, train_model
 
 
-def set_seed(seed: int) -> None:
+def _missing_dependencies() -> list[str]:
+    required = ["numpy", "torch"]
+    return [name for name in required if find_spec(name) is None]
+
+
+def _ensure_runtime_dependencies() -> None:
+    missing = _missing_dependencies()
+    if not missing:
+        return
+
+    joined = ", ".join(missing)
+    raise RuntimeError(
+        "Missing required Python packages: "
+        f"{joined}.\n"
+        "Install dependencies in your active VS Code/Jupyter environment with:\n"
+        "  python -m pip install -r requirements.txt\n"
+        "If using a notebook, run:\n"
+        "  %pip install -r requirements.txt\n"
+        "Then restart the kernel/interpreter and run again."
+    )
+
+
+def set_seed(seed: int, np_module, torch_module) -> None:
     random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    np_module.random.seed(seed)
+    torch_module.manual_seed(seed)
 
 
 def run_pipeline() -> dict[str, float | int]:
+    _ensure_runtime_dependencies()
+
+    import numpy as np
+    import torch
+
+    from compression import (
+        apply_magnitude_pruning,
+        global_sparsity,
+        quantize_model_weights,
+        replace_linear_layers,
+    )
+    from data import build_feature_dataloaders
+    from models import FeatureMLP
+    from utils import evaluate, filesize_bytes, huffman_encode_file, save_compressed_npz, train_model
+
     cfg = DEFAULT_CONFIG
-    set_seed(cfg.seed)
+    set_seed(cfg.seed, np, torch)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, test_loader = build_feature_dataloaders(
