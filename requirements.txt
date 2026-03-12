@@ -1,5 +1,2 @@
-numpy
-scikit-learn
-transformers
-matplotlibnumpy>=1.24
+numpy>=1.24
 torch>=2.0
