@@ -101,18 +101,26 @@ def _run_torch_pipeline() -> dict[str, float | int | str]:
 
 def run_pipeline() -> dict[str, float | int | str]:
     _ensure_runtime_dependencies()
+
+    # Allow users to force NumPy backend (helpful in broken torch environments).
+    import os
+
+    if os.environ.get("FORCE_NUMPY_BACKEND", "0") == "1":
+        from numpy_fallback import run_numpy_pipeline
+
+        metrics = run_numpy_pipeline(DEFAULT_CONFIG)
+        metrics["fallback_reason"] = "FORCE_NUMPY_BACKEND=1"
+        return metrics
+
     try:
         return _run_torch_pipeline()
-    except (ImportError, OSError) as exc:
-        # Common on Windows when PyTorch DLLs cannot initialize.
-        message = str(exc).lower()
-        if "torch" in message or "dll" in message or "winerror 1114" in message:
-            from numpy_fallback import run_numpy_pipeline
+    except Exception as exc:
+        # Torch can fail with OSError/ImportError/RuntimeError depending on platform and wheel state.
+        from numpy_fallback import run_numpy_pipeline
 
-            metrics = run_numpy_pipeline(DEFAULT_CONFIG)
-            metrics["fallback_reason"] = str(exc)
-            return metrics
-        raise
+        metrics = run_numpy_pipeline(DEFAULT_CONFIG)
+        metrics["fallback_reason"] = f"torch backend failed: {exc}"
+        return metrics
 
 
 if __name__ == "__main__":
