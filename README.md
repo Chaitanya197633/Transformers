@@ -24,18 +24,25 @@ Then restart the kernel/interpreter.
 
 ## Windows PyTorch DLL error support
 If your environment throws errors like `WinError 1114` / `Error loading ... torch\lib\c10.dll`,
+<<<<<<< codex/implement-deep-compression-pipeline-tasks-b30w5a
 `run_pipeline()` now automatically falls back to a NumPy implementation for any Torch backend failure so you can continue running the full pruning/quantization/NPZ/Huffman flow.
+=======
+`run_pipeline()` now automatically falls back to a NumPy implementation so you can continue running the full pruning/quantization/NPZ/Huffman flow.
+>>>>>>> main
 
 The returned metrics include:
 - `backend`: `"torch"` or `"numpy-fallback"`
 - `fallback_reason`: included when fallback is used
 
+<<<<<<< codex/implement-deep-compression-pipeline-tasks-b30w5a
 You can also force NumPy backend explicitly:
 
 ```bash
 FORCE_NUMPY_BACKEND=1 python main.py
 ```
 
+=======
+>>>>>>> main
 ## Run
 ```bash
 python main.py
