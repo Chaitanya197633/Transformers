@@ -7,7 +7,7 @@ from config import DEFAULT_CONFIG
 
 
 def _missing_dependencies() -> list[str]:
-    required = ["numpy", "torch"]
+    required = ["numpy"]
     return [name for name in required if find_spec(name) is None]
 
 
@@ -34,9 +34,7 @@ def set_seed(seed: int, np_module, torch_module) -> None:
     torch_module.manual_seed(seed)
 
 
-def run_pipeline() -> dict[str, float | int]:
-    _ensure_runtime_dependencies()
-
+def _run_torch_pipeline() -> dict[str, float | int | str]:
     import numpy as np
     import torch
 
@@ -77,6 +75,7 @@ def run_pipeline() -> dict[str, float | int]:
     quantized_acc = evaluate(model, test_loader, device)
 
     metadata = {
+        "backend": "torch",
         "feature_dim": cfg.feature_dim,
         "num_classes": cfg.num_classes,
         "pruning_ratio": cfg.pruning_ratio,
@@ -88,6 +87,7 @@ def run_pipeline() -> dict[str, float | int]:
     huff_size = filesize_bytes(cfg.huffman_output_path)
 
     return {
+        "backend": "torch",
         "baseline_accuracy": baseline_acc,
         "pruned_accuracy": pruned_acc,
         "quantized_accuracy": quantized_acc,
@@ -97,6 +97,22 @@ def run_pipeline() -> dict[str, float | int]:
         "huffman_size_bytes": huff_size,
         "huffman_ratio": huffman_ratio,
     }
+
+
+def run_pipeline() -> dict[str, float | int | str]:
+    _ensure_runtime_dependencies()
+    try:
+        return _run_torch_pipeline()
+    except (ImportError, OSError) as exc:
+        # Common on Windows when PyTorch DLLs cannot initialize.
+        message = str(exc).lower()
+        if "torch" in message or "dll" in message or "winerror 1114" in message:
+            from numpy_fallback import run_numpy_pipeline
+
+            metrics = run_numpy_pipeline(DEFAULT_CONFIG)
+            metrics["fallback_reason"] = str(exc)
+            return metrics
+        raise
 
 
 if __name__ == "__main__":
