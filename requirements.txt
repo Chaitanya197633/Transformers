@@ -1,0 +1,3 @@
+numpy>=1.24
+# Optional (used when available). If torch fails to load, code falls back to NumPy backend.
+torch>=2.0
