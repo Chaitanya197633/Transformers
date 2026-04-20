@@ -63,3 +63,22 @@ metrics
 4. Quantize pruned weights.
 5. Serialize compressed model to NPZ.
 6. Huffman-encode NPZ and report compression ratio.
+
+## Center-embedding entropy project
+This repo now includes `center_embedding_entropy.py`, a standalone experiment that measures token-by-token predictive uncertainty for center-embedded sentences.
+
+### What it does
+- Generates deterministic center-embedded sentences with configurable tree depth.
+- Runs a causal language model left-to-right.
+- Logs per-token cross-entropy, surprisal (bits), and perplexity.
+- Exports:
+  - `token_entropy.tsv`: token-level scores.
+  - `summary.tsv`: mean/peak surprisal by depth.
+  - `entropy_curve.png`: curve showing where confidence collapses.
+
+### Run
+```bash
+python center_embedding_entropy.py --model distilgpt2 --min-depth 1 --max-depth 4
+```
+
+Outputs are written to `outputs/center_embedding/` by default.
